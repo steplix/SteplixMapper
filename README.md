@@ -6,6 +6,9 @@ Steplix Mapper is a promise-based Node.js Remote Object Mapper.
 
 * [Download & Install][install].
 * [How is it used?][how_is_it_used].
+  + [Model][how_is_it_used_model].
+  + [Mediator][how_is_it_used_mediator].
+  + [Controller][how_is_it_used_controller].
 * [Tests][tests].
 
 ## Download & Install
@@ -143,34 +146,16 @@ MediatorMapper
     response.fullname = mediator.select('device.attributes').where('id_attribute', 1).first('description');
     response.hardware = mediator.select('device.attributes').where('id_attribute').match(10).first('description');
     response.position = mediator.select('device.attributes').where({ id_attribute: 15 }).first('description');
-    response.position = mediator.select('device.attributes').where({
-      id_attribute: {
-        is: 'number',
-        eq: 20
-      }
-    }).first('description');
-    response.position = mediator.select('device.attributes').where({
-      id_attribute: { '==': '25' }
-    }).first('description');
-    response.position = mediator.select('device.attributes').where({
-      id_attribute: { '===': 30 }
-    }).first('description');
 
     response.date = mediator.select('device.created_at').value();
 
     response.charts = {};
     response.charts.humidity = mediator.select('measurements').where('id_metric', 1).model(chart).value();
     response.charts.temperature = mediator.select('measurements').where({'id_metric' : 2}).model(chart).value();
-    response.charts.carbon_dioxide = mediator.select('measurements').where('id_metric').match(3).model(chart).value();
-    response.charts.battery = mediator.select('measurements').where('id_metric').match(5).model(chart).value();
-    response.charts.heg = mediator.select('measurements').where('id_metric').match(12).model(chart).value();
 
     response.latest = {};
     response.latest.humidity = mediator.select('measurements').where('id_metric', 1).model(chart).last();
     response.latest.temperature = mediator.select('measurements').where('id_metric', 2).model(chart).last();
-    response.latest.carbon_dioxide = mediator.select('measurements').where('id_metric', 3).model(chart).last();
-    response.latest.battery = mediator.select('measurements').where('id_metric', 5).model(chart).last();
-    response.latest.heg = mediator.select('measurements').where('id_metric', 12).model(chart).last();
 
     return response;
   });
@@ -291,6 +276,100 @@ mediator.select('device').take(2, /* flag ending */ true);
 // AFTER: Mediator context [{ id: 101, name: 'IOS' }, { id: 102, name: 'WindowPhone' }]
 ```
 
+### Controller mapper
+
+```js
+const { ControllerMapper } = require('steplix-mapper');
+
+class Controller extends ControllerMapper {
+  props (req) {
+    return {
+      device: `http://api.mysite.com/devices/${req.params.id}`,
+      measurements: `http://api.mysite.com/devices/${req.params.id}/measurements`
+    };
+  }
+
+  map (/* MediatorMapper */ mediator) {
+    const res = {};
+
+    res.id = mediator.select('device').value('id');
+    res.fullname = mediator.select('device.attributes').where('id_attribute', 1).first('description');
+    /* More properties mapped with the mediator... */
+    return res;
+  }
+}
+
+export default (new Controller()).handlerize();
+```
+
+#### `controllerMapper.handle`
+
+Principal function. Responsible for handling the request.
+```js
+class Controller extends ControllerMapper {
+  handle (req, res, next) {
+    /* my code */
+    return super.handle(req, res, next);
+  }
+
+  /* ... */
+}
+```
+
+#### `controllerMapper.validate`
+
+Used to validate the request.
+```js
+class Controller extends ControllerMapper {
+  validate (req) {
+    if (!req.params.id) {
+      throw new Error('Device not found');
+    }
+  }
+
+  /* ... */
+}
+```
+
+#### `controllerMapper.success`
+
+Used to handle success responses.
+```js
+class Controller extends ControllerMapper {
+  success (res, /* object returned from map function */ result, statusCode = 200) {
+    return res.status(statusCode).send(result);
+  }
+
+  /* ... */
+}
+```
+
+#### `controllerMapper.error`
+
+Used to handle error responses.
+```js
+class Controller extends ControllerMapper {
+  error (err, req, res, next) {
+    const code = (err && (err.statusCode || err.status)) || 500;
+    return res.status(code).send({ code, error: `${err}` });
+  }
+
+  /* ... */
+}
+```
+
+#### `controllerMapper.handlerize`
+
+Just does the following:
+```js
+class Controller extends ControllerMapper {
+  handlerize () {
+    return this.handle.bind(this);
+  }
+
+  /* ... */
+}
+```
 
 ## Tests
 
@@ -309,4 +388,7 @@ npm run test-app
 <!-- deep links -->
 [install]: #download--install
 [how_is_it_used]: #how-is-it-used
+[how_is_it_used_model]: #model-mapper
+[how_is_it_used_mediator]: #mediator-mapper
+[how_is_it_used_controller]: #controller-mapper
 [tests]: #tests
