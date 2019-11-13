@@ -5,7 +5,7 @@ const P = require('bluebird');
 const R = require('request-promise');
 const async = require('async');
 const mapper = require('./mapper');
-const { normalizeAttributeName, isRequiredAttribute } = require('./helpers');
+const { normalizeAttributeName, isRequiredAttribute } = require('../helpers');
 
 const defaultOptions = {
     failOnNotExistsAttribute: true
@@ -15,7 +15,7 @@ const defaultOptions = {
  * Registers the properties of a model-builder schema object
  *
  * @private
- * @param {string} func - Property name
+ * @param {string} fn - Property name
  * @param {mixed} options - options for the function property
  */
 function _register (fn, options) {
@@ -30,7 +30,7 @@ function _register (fn, options) {
  * Registers the properties modifiers of a model-builder schema object
  *
  * @private
- * @param {string} func - Property name
+ * @param {string} fn - Property name
  * @param {mixed} options - options for the function property
  */
 function _registerModifier (fn, options) {
@@ -52,6 +52,22 @@ function _build (data, options, previous) {
 
     // Returns the result of the build model
     return P.reduce(_.values(this.properties), (result, property) => {
+        // Applies all validations defined in lib one by one
+        return mapper[property.fn].apply(this, [data, result, _.defaults({}, property.options, options)]);
+    }, previous || {});
+}
+
+/**
+ * Build model sync and return the result
+ *
+ * @param {mixed} data - JSON array or unique object
+ * @return {mixed} Mixed value the property
+ */
+function _buildSync (data, options, previous) {
+    options = _.defaults({}, options || {}, this.options);
+
+    // Returns the result of the build model
+    return _.reduce(_.values(this.properties), (result, property) => {
         // Applies all validations defined in lib one by one
         return mapper[property.fn].apply(this, [data, result, _.defaults({}, property.options, options)]);
     }, previous || {});
@@ -93,7 +109,7 @@ class ModelMapper {
         // Check if has more one elements on data.
         if (_.isArray(this.data)) {
             return new P((resolve, reject) => {
-                async.map(this.data, (d, next) => {
+                return async.map(this.data, (d, next) => {
                     return P.bind(this)
                         .then(() => _build.call(this, d, options, previous))
                         .then(result => next(null, result))
@@ -127,6 +143,40 @@ class ModelMapper {
             }
             return models;
         });
+    }
+
+    /**
+     * Build model and return the result
+     *
+     * @param {mixed} data - JSON array or unique object
+     * @return {mixed} Mixed value the property
+     */
+    buildSync (data, options, previous) {
+        // Sets data
+        this.data = data;
+
+        // Check if has more one elements on data.
+        if (_.isArray(this.data)) {
+            return _.map(this.data, d => _buildSync.call(this, d, options, previous));
+        }
+
+        // Returns the result of the build model
+        return _buildSync.call(this, data, options, previous);
+    }
+
+    /**
+     * Build one model and return the result
+     *
+     * @param {mixed} data - JSON array or unique object
+     * @return {mixed} Mixed value the property
+     */
+    buildOneSync (data, options, previous) {
+        const models = this.buildSync(_.isArray(data) ? _.first(data) : data, options, previous);
+
+        if (_.isArray(models)) {
+            return _.first(models);
+        }
+        return models;
     }
 
     /**
@@ -277,6 +327,12 @@ class ModelMapper {
     as (options) {
         return _registerModifier.call(this, 'as', {
             as: options
+        });
+    }
+
+    optional (options) {
+        return _registerModifier.call(this, 'optional', {
+            required: false
         });
     }
 }

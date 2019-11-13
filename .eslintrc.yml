@@ -7,6 +7,10 @@ globals:
   Atomics: readonly
   SharedArrayBuffer: readonly
   # Prevent tests broken undefined global variables
+  beforeEach: readonly
+  afterEach: readonly
+  before: readonly
+  after: readonly
   describe: readonly
   expect: readonly
   it: readonly

@@ -5,7 +5,7 @@ const P = require('bluebird');
 const moment = require('moment');
 const numeral = require('numeral');
 const { watch, unwatch } = require('watch-object');
-const { normalizeAttributeName } = require('./helpers');
+const { normalizeAttributeName } = require('../helpers');
 
 /**
  * Add one attribute model reference

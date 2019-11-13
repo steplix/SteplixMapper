@@ -3,6 +3,9 @@
   "version": "0.0.4",
   "description": "Steplix Mapper is a promise-based Node.js Remote Object Mapper.",
   "main": "index.js",
+  "engines": {
+    "node": ">=7.0.0"
+  },
   "scripts": {
     "lint": "node_modules/.bin/eslint core tests",
     "lint-fix": "node_modules/.bin/eslint --fix core tests",
@@ -38,6 +41,7 @@
     "eslint-plugin-promise": "^4.2.1",
     "eslint-plugin-standard": "^4.0.1",
     "mocha": "^6.2.2",
+    "mock-require": "^3.0.3",
     "supertest": "^4.0.2"
   }
 }
