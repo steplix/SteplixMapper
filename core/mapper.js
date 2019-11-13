@@ -79,11 +79,6 @@ function attribute (data, result, options) {
         applyDefault(result, options.def, options);
     }
 
-    if (options.copy && (options.copy !== options.name && options.copy !== options.normalizeName)) {
-        // Copy attribute value.
-        applyCopy(result, options.copy, options);
-    }
-
     if (options.type) {
         // Typed attribute value.
         applyType(result, options.type, options);
@@ -92,6 +87,11 @@ function attribute (data, result, options) {
     if (options.format) {
         // Apply format to attribute value.
         applyFormat(result, options.format, options);
+    }
+
+    if (options.copy && (options.copy !== options.name && options.copy !== options.normalizeName)) {
+        // Copy attribute value.
+        applyCopy(result, options.copy, options);
     }
     return result;
 }
@@ -155,14 +155,6 @@ function applyDefault (result, value, options) {
 }
 
 /**
- * Typed attribute
- */
-function applyType (result, type, options) {
-    _.set(result, options.normalizedName, type(_.get(result, options.normalizedName)));
-    return result;
-}
-
-/**
  * Copy attribute
  */
 function applyCopy (result, original, options) {
@@ -214,6 +206,14 @@ function applyCopy (result, original, options) {
         // Attach watch to original property name
         watch(result, originalName, watchCopy);
     }
+    return result;
+}
+
+/**
+ * Typed attribute
+ */
+function applyType (result, type, options) {
+    _.set(result, options.normalizedName, type(_.get(result, options.normalizedName)));
     return result;
 }
 
