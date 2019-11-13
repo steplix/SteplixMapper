@@ -34,7 +34,7 @@ class Controller {
         return res.status(code).send({ code, error: `${err}` });
     }
 
-    handlerize() {
+    handlerize () {
         return this.handle.bind(this);
     }
 }
