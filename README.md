@@ -289,7 +289,7 @@ class Controller extends ControllerMapper {
     };
   }
 
-  map (/* MediatorMapper */ mediator) {
+  build (/* MediatorMapper */ mediator) {
     const res = {};
 
     res.id = mediator.select('device').value('id');
@@ -336,7 +336,7 @@ class Controller extends ControllerMapper {
 Used to handle success responses.
 ```js
 class Controller extends ControllerMapper {
-  success (res, /* object returned from map function */ result, statusCode = 200) {
+  success (res, /* object returned from build function */ result, statusCode = 200) {
     return res.status(statusCode).send(result);
   }
 

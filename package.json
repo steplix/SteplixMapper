@@ -1,6 +1,6 @@
 {
   "name": "steplix-mapper",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "Steplix Mapper is a promise-based Node.js Remote Object Mapper.",
   "main": "index.js",
   "scripts": {
@@ -22,6 +22,7 @@
   "dependencies": {
     "async": "^3.1.0",
     "bluebird": "^3.7.1",
+    "depd": "^2.0.0",
     "lodash": "^4.17.15",
     "moment": "^2.24.0",
     "numeral": "^2.0.6",
